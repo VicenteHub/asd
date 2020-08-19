@@ -1,6 +1,31 @@
 A continuación, se presenta la segunda versión del código de Arduino, asociado al programa "Telémetro ultrasónico", disponible en la página www.tinkercad.com
 
 /*
+  // +++++++++++++++++++++++++++++++++++++++ //
+  Este programa cuenta con un bloque de codigo llamado 
+  "readUltrasonicDistance" que tiene dos valores de entrada
+  del tipo "int", donde ambos corresponden al pin 7.
+  El sistema envía un pulso eléctrico por el pin 7 (definido 
+  como salida) y mide el tiempo transcurrido entre que el pulso
+  se enciende y se vuelve a apagar (LOW-->HIGH-->LOW).
+  Esto se logra haciendo uso de la funcion pulseIn(). 
+  
+  Referencia de la funcion: 
+  https://www.arduino.cc/reference/en/language/functions/advanced-io/pulsein/
+  
+  Dentro del ciclo repetitivo de este programa se convierte
+  el tiempo medido en una distancia en centimetros, dado que 
+  este tiempo es proporcional a la distancia que el mismo recorre.
+  
+  Finalmente esta distancia se escribe en el monitor serial 
+  en centimetros y en pulgadas cada 100 milisegundos.
+  
+  La modificación a este programa es la siguiente:
+  Cada vez que se detecte un objeto a menos de 80 cm, se encenderá
+  un LED rojo y, mientras la distancia sea mayor a 80 cm, se encenderá
+  un LED verde.
+  // ++++++++++++++++++++++++++++++++++++++++++ //
+  
   Ping))) Sensor
 
   This sketch reads a PING))) ultrasonic
@@ -22,11 +47,12 @@ A continuación, se presenta la segunda versión del código de Arduino, asociad
 */
 
 int inches = 0;
-
 int cm = 0;
+int ledVerde = 2;
+int ledRojo = 3;
+int dist = 80; // Distancia mínima de alerta
 
-long readUltrasonicDistance(int triggerPin, int echoPin)
-{
+long readUltrasonicDistance(int triggerPin, int echoPin){
   pinMode(triggerPin, OUTPUT);  // Clear the trigger
   digitalWrite(triggerPin, LOW);
   delayMicroseconds(2);
@@ -39,18 +65,29 @@ long readUltrasonicDistance(int triggerPin, int echoPin)
   return pulseIn(echoPin, HIGH);
 }
 
-void setup()
-{
+void setup(){
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledRojo, OUTPUT);
   Serial.begin(9600);
-
 }
 
-void loop()
-{
+void loop(){
   // measure the ping time in cm
   float cm = 0.01723 * readUltrasonicDistance(7, 7);
   // convert to inches by dividing by 2.54
   float inches = (cm / 2.54);
+  // ++++++++++++++++++++++++++++++++++++++++ //
+  // Se enciende un LED verde si la distancia es mayor a 50 cm
+  // y se enciende un LED rojo si la distancia es menor a 50 cm
+  if (cm <= dist){
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledRojo, HIGH);  
+  } 
+  else {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledRojo, LOW);
+  } 
+  // ++++++++++++++++++++++++++++++++++++++++ //
   Serial.print(inches);
   Serial.print(" in, ");
   Serial.print(cm);
